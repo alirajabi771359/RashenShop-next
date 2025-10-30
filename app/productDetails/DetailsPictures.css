@@ -1,0 +1,38 @@
+.image-gallery-thumbnails-container {
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    white-space: nowrap; 
+    width: 100% !important; 
+  }
+  .image-gallery-thumbnails-wrapper {
+    display: inline-flex !important;
+    overflow-x: auto !important;
+  }
+  
+  .image-gallery-thumbnail {
+    display: inline-block !important;
+    overflow-x: auto !important;
+    width: 500px;
+  }
+
+  .image-gallery-thumbnails .image-gallery-thumbnail {
+    width: 100px !important;      /* set the width you want */
+    height: 100px;
+    overflow-y: hidden;     /* optional: keep square */
+  }
+  
+  .image-gallery-thumbnail img {
+    object-fit: contain;
+    width: 92px;      /* set the width you want */
+    height: 92px;
+  }
+  
+ /* price change */
+ @keyframes price-change {
+  0%   { background-color: #e5e7eb; } /* gray-200 */
+  100% { background-color: transparent; }
+}
+
+.animate-price-change {
+  animation: price-change 2s ease;
+}
