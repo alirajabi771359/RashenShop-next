@@ -13,17 +13,20 @@ import useGetKala from "@/app/api/searchInput/hook";
 import { useRouter } from 'next/navigation';
 import { ProductType } from "@/types/types";
 import { usePathname } from "next/navigation";
+import { searchBoxVisible } from "@/shared/isSearchBoxVisible";
+import { lastSearchValue } from "@/shared/lastSearchValue";
 
 const SearchInput = () => {
-  const [apiUsers, setApiUsers] = useState<ProductType>([]);
+  const [apiUsers, setApiUsers] = useState<any>({});
   const [searchItem, setSearchItem] = useAtom(inputValue);
-  const [filteredUsers, setFilteredUsers] = useState<ProductType>([]);
-  const [isBoxVisible, setIsBoxVisible] = useState<boolean>(false);
+  const [filteredUsers, setFilteredUsers] = useState<any>({});
+  const [isBoxVisible, setIsBoxVisible] = useAtom(searchBoxVisible);
   const [state] = useAtom(selectedStore)
   const router = useRouter();
   const [wasNavigatedBack, setWasNavigatedBack] = useState(false);
   const pathname = usePathname();
   const prevIndexRef = useRef(null);
+  const [lastSearch, setLastSearch] = useAtom(lastSearchValue);
   
   // handle keep box open on navigation back
   useEffect(() => {
@@ -66,7 +69,7 @@ const SearchInput = () => {
 
   useEffect(() => {
     if (deferredSearchTerm.trim().length < 2) {
-      setApiUsers([]);
+      setApiUsers({});
       return;
     }
 
@@ -88,31 +91,45 @@ const SearchInput = () => {
 
   // ✅ Filtering logic with `deferredSearchTerm`
   useEffect(() => {
-    if (pathname.includes('/productDetails')) {
-      setIsBoxVisible(false);
-      return;
-    }
-
     if (deferredSearchTerm && pathname != '/search') {
       const filteredItems = apiUsers
       setFilteredUsers(filteredItems);
-      setIsBoxVisible(searchItem.length > 0);
     } else {
-      setFilteredUsers([]);
-      setIsBoxVisible(false);
+      setFilteredUsers({});
     }
   }, [deferredSearchTerm, apiUsers]);
+
+  useEffect(() => {
+    if (pathname !== "/search") {
+      if (searchItem.trim().length > 2) {
+        setIsBoxVisible(true);
+      } else {
+        setIsBoxVisible(false); // 👈 hide box when text is cleared
+      }
+    }
+  }, [searchItem, pathname]);
 
   return (
     <>
       <div style={{ height: "100%" }} className="relative group ">
         <TextField
-          placeholder="محصول، گروه کالا یا برند مورد نظرتان را جستجو کنید "
+          placeholder={lastSearch != '' ? lastSearch : "محصول، گروه کالا یا برند مورد نظرتان را جستجو کنید "}
           variant="outlined"
           fullWidth
           value={searchItem}
           onChange={handleInputChange}
+          disabled={pathname == '/search'}
           className="boxshadowHead rounded-md"
+          onFocus={() => {
+            if (
+              (pathname.includes("/productDetails") || pathname.includes("/productList")) &&
+              searchItem === "" &&
+              lastSearch.trim() !== ""
+            ) {
+              setSearchItem(lastSearch);
+              setLastSearch('')
+            }
+          }}
           InputProps={{
             startAdornment: (
               <InputAdornment position="start">
@@ -165,11 +182,11 @@ const SearchInput = () => {
                   <ArrowBackIosIcon className="text-sm" />
                   <span>برو به صفحه ی جستجو</span>
                 </button>
-                <span className="text-xs sm:text-lg">محصولات</span>
+                <span className="text-xs sm:text-lg">جستجو</span>
               </div>
 
               <div className="w-full h-[51%] lg:h-[90%] overflow-y-scroll flex">
-                <SearchInputItems filteredUsers={filteredUsers} searchItem={searchItem} setIsBoxVisible={setIsBoxVisible}/>
+                <SearchInputItems filteredUsers={filteredUsers} searchItem={searchItem} setIsBoxVisible={setIsBoxVisible} setSearchItem={setSearchItem} setLastSearch={setLastSearch}/>
               </div>
             </div>
           </div>
