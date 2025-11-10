@@ -22,27 +22,31 @@ const Menu = () => {
 
     if (nav?.type === "reload") {
       // Page was refreshed
-      Cookies.remove("MenuData");
+      // Cookies.remove("MenuData");
+      // sessionStorage.removeItem("MenuData");
 
       (async () => {
         try {
           const data = await getMenu();
           setMenuData(data);
-          Cookies.set("MenuData", JSON.stringify(data));
+          // Cookies.set("MenuData", JSON.stringify(data));
+          sessionStorage.setItem("MenuData",JSON.stringify(data))
         } catch (err) {
           console.error("Failed to fetch menu after reload:", err);
         }
       })();
     } else {
       // Not a reload — load from cookies if available
-      const cached = Cookies.get("MenuData");
+      // const cached = Cookies.get("MenuData");
+      const cached = sessionStorage.getItem("MenuData")
       if (cached) {
         try {
           const parsed = JSON.parse(cached);
           setMenuData(parsed);
         } catch (err) {
           console.error("Error parsing cached MenuData:", err);
-          Cookies.remove("MenuData");
+          // Cookies.remove("MenuData");
+          // sessionStorage.removeItem("MenuData")
         }
       } else {
         // No cache — fetch for the first time
@@ -50,7 +54,8 @@ const Menu = () => {
           try {
             const data = await getMenu();
             setMenuData(data);
-            Cookies.set("MenuData", JSON.stringify(data));
+            // Cookies.set("MenuData", JSON.stringify(data));
+            sessionStorage.setItem("MenuData", JSON.stringify(data))
           } catch (err) {
             console.error("Failed to fetch menu:", err);
           }

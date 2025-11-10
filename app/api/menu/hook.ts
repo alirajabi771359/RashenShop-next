@@ -19,7 +19,8 @@ const GetGroupKalaTreeUsed = `${process.env.NEXT_PUBLIC_API_BASE_URL}/pub/GetGro
         GetGroupKalaTreeUsed,
       );
       setResponse(res)
-      Cookies.set("MenuData",JSON.stringify(res.data), { expires: 1 / 24 })
+      // Cookies.set("MenuData",JSON.stringify(res.data), { expires: 1 / 24 })
+      sessionStorage.setItem("MenuData",JSON.stringify(res.data))
       return res.data
     } catch (err: any) {
       console.error('Error fetching data in GetGroupKalaTreeUsed', err);
