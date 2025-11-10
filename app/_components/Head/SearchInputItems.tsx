@@ -1,7 +1,7 @@
 'use client'
 
 import { productListUpdate } from "@/shared/product.list.atom";
-import { Button } from "@mui/material";
+import { Button, Divider } from "@mui/material";
 import { useAtom } from "jotai";
 import { useEffect, useState } from "react";
 import SearchLoading from "./SearchLoading";
@@ -12,12 +12,14 @@ import Link from "next/link";
 import {ProductType} from '@/types/types'
 
 type props = {
-  filteredUsers: ProductType;
+  filteredUsers: any;
   searchItem: string;
   setIsBoxVisible:React.Dispatch<React.SetStateAction<boolean>> ;
+  setSearchItem:React.Dispatch<React.SetStateAction<string>>;
+  setLastSearch:React.Dispatch<React.SetStateAction<string>>;
 }
 
-const SearchInputItems = ({ filteredUsers, searchItem, setIsBoxVisible }:props) => {
+const SearchInputItems = ({ filteredUsers, searchItem, setIsBoxVisible,setSearchItem,setLastSearch }:props) => {
   const [products, setProducts] = useAtom(productListUpdate);
 
   // handle openning snackbar
@@ -52,7 +54,7 @@ const SearchInputItems = ({ filteredUsers, searchItem, setIsBoxVisible }:props) 
   }, [searchItem]);
 
   useEffect(() => {
-    if (filteredUsers.length > 0) {
+    if (filteredUsers?.Items?.lst?.length > 0 || filteredUsers?.Groups?.lst?.length > 0) {
       setLoading(false);
     }
   }, [filteredUsers, hasSearched]);
@@ -62,15 +64,42 @@ const SearchInputItems = ({ filteredUsers, searchItem, setIsBoxVisible }:props) 
     <>
       <div className="w-full h-full">
         {searchItem.length < 2 &&
-          filteredUsers.length === 0 &&
+          (filteredUsers?.Items?.lst?.length === 0 && filteredUsers?.Groups?.lst?.length === 0) &&
           !hasSearched && <p className="mt-10 mr-5 text-right">محصولی یافت نشد</p>}
         {loading && <SearchLoading />}
-        {!loading && hasSearched && filteredUsers.length === 0 && (
+        {!loading && hasSearched && (filteredUsers?.Items?.lst?.length === 0 && filteredUsers?.Groups?.lst?.length === 0) && (
           <div className="mt-10 mr-5 text-right">محصولی یافت نشد</div>
         )}
-        {!loading && filteredUsers.length > 0 && (
+        {!loading && (filteredUsers?.Items?.lst?.length > 0 && filteredUsers?.Groups?.lst?.length > 0) && (
+          <>
+          {filteredUsers && filteredUsers?.Groups?.lst?.length > 0 && 
           <div className="flex flex-wrap w-full h-auto px-2 gap-5">
-            {filteredUsers && filteredUsers.map((data:any) => {
+            <div className="w-full text-right"><span className="font-semibold"> : جستجو در دسته بندی ها</span></div>
+            {filteredUsers?.Groups?.lst?.map((item:any,index:any)=>(
+              <div key={index} className="flex flex-col items-end w-full gap-3">
+                <div className="border p-3 rounded-lg border-gray-300 flex justify-end"><Link href={`/productList/${item?.Name}`} 
+                  onClick={() => {
+                   setIsBoxVisible(false);
+                   setSearchItem('')
+                   sessionStorage.removeItem('ProductListOrderParam');
+                   if (searchItem.trim()) {
+                    setLastSearch(searchItem);
+                  }
+                  }
+                  }
+                  className="text-blue-400">{item?.Name}</Link><span className="text-gray-400">: در دسته</span></div>
+              </div>
+            ))}
+          </div>
+          }
+          {filteredUsers && filteredUsers?.Items?.lst?.length > 0 &&
+          <>
+          <div className="w-full my-5">
+          <Divider/>  
+          </div>
+          <div className="flex flex-wrap w-full h-auto px-2 gap-5">
+             <div className="w-full text-right"><span className="font-semibold"> : جستجو در محصولات</span></div>
+            {filteredUsers && filteredUsers?.Items?.lst && filteredUsers?.Items?.lst?.length > 0 && filteredUsers?.Items?.lst?.map((data:any) => {
               const imageSrc = data.FldNameImageKalaList
                 ? `https://imbmi.ir/assets/public/kala/${data.IdKala}/${
                     data.FldNameImageKalaList.split(",")[0]
@@ -121,7 +150,14 @@ const SearchInputItems = ({ filteredUsers, searchItem, setIsBoxVisible }:props) 
                     {/* Product Image */}
                     <Link
                       href={`/productDetails/${data.IdStoreStock}/${encodeURIComponent(data.NameKala)}`}
-                      onClick={() => setIsBoxVisible(false)}
+                      onClick={() => {
+                        setSearchItem('')
+                        setIsBoxVisible(false)
+                        if (searchItem.trim()) {
+                          setLastSearch(searchItem);
+                        }
+                      }  
+                      }
                       className="flex justify-center overflow-hidden h-max p-1"
                     >
                       <img src={imageSrc} alt={data.NameKala} className="w-20 h-20 object-fill rounded-lg" />
@@ -131,7 +167,14 @@ const SearchInputItems = ({ filteredUsers, searchItem, setIsBoxVisible }:props) 
                     <div className="p-4">
                       <Link
                         href={`/productDetails/${data.IdStoreStock}/${encodeURIComponent(data.NameKala)}`}
-                        onClick={() => setIsBoxVisible(false)}
+                        onClick={() => {
+                          setSearchItem('')
+                          setIsBoxVisible(false)
+                          if (searchItem.trim()) {
+                            setLastSearch(searchItem);
+                          }
+                        }
+                        }
                       >
                         <h3 className="md:text-lg text-sm font-semibold text-gray-800 hover:text-blue-500 transition text-right">
                           {data.NameKala}
@@ -157,6 +200,9 @@ const SearchInputItems = ({ filteredUsers, searchItem, setIsBoxVisible }:props) 
               );
             })}
           </div>
+          </>
+          }
+          </>
         )}
       </div>
       <MessageSnackbar snackbarOpen={opensnackbar} autoHideDuration={3000} snackbarMessage={"محصولات انتخابی باید فقط از یک فروشگاه باشند"} setSnackbarOpen={setOpensnackbar}/>
